@@ -3,6 +3,7 @@ kind: Service
 metadata:
   name: {{ include "hello-world.fullname" . }}
   labels:
+    additional: nick
     {{- include "hello-world.labels" . | nindent 4 }}
 spec:
   type: {{ .Values.service.type }}
