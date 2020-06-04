@@ -49,21 +49,19 @@ jobs:
       uses: stefanprodan/kube-tools@v1
       with:
         helmv3: 3.2.1
-        run: |
+        command: |
            export HELM_EXPERIMENTAL_OCI=1
            helmv3 registry login registry.digitalocean.com --username ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }} --password ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
-           helmv3 chart save ./chart $DOCR_REGISTRY_HOSTNAME/$DOCR_REGISTRY_NAME/$HELM_REPO/$IMAGE:$GITHUB_SHA
-           helmv3 chart push $DOCR_REGISTRY_HOSTNAME/$DOCR_REGISTRY_NAME/$HELM_REPO/$IMAGE:$GITHUB_SHA
+           helmv3 chart save ./chart $REGISTRY_HOSTNAME/$REGISTRY_NAME/$HELM_REPO/$IMAGE:$GITHUB_SHA
+           helmv3 chart push $REGISTRY_HOSTNAME/$REGISTRY_NAME/$HELM_REPO/$IMAGE:$GITHUB_SHA
     
     - name: Deploy to cluster
       uses: stefanprodan/kube-tools@v1
       with:
-        kubectl: 1.18.2
-        kustomize: 3.5.5
         helmv3: 3.2.1
         command: |
           export HELM_EXPERIMENTAL_OCI=1
-          helmv3 chart export $DOCR_REGISTRY_HOSTNAME/$DOCR_REGISTRY_NAME/$HELM_REPO/$IMAGE:$GITHUB_SHA -d install
+          helmv3 chart export $REGISTRY_HOSTNAME/$REGISTRY_NAME/$HELM_REPO/$IMAGE:$GITHUB_SHA -d install
           if ! helmv3 status $DEPLOYMENT_NAME > /dev/null; then
             helm install $DEPLOYMENT_NAME ./install/$HELM_REPO --set image.tag=$GITHUB_SHA
           else
