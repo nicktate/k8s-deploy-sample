@@ -77,8 +77,8 @@ jobs:
           export HELM_EXPERIMENTAL_OCI=1
           helmv3 chart export $REGISTRY_HOSTNAME/$REGISTRY_NAME/$HELM_REPO/$IMAGE:$GITHUB_SHA -d install
           if ! helmv3 status $DEPLOYMENT_NAME > /dev/null; then
-            helm install $DEPLOYMENT_NAME ./install/$HELM_REPO --set image.tag=$GITHUB_SHA 
+            helmv3 install $DEPLOYMENT_NAME ./install/$HELM_REPO --set image.tag=$GITHUB_SHA 
           else
-            helm upgrade $DEPLOYMENT_NAME ./install/$HELM_REPO --set image.tag=$GITHUB_SHA
+            helmv3 upgrade $DEPLOYMENT_NAME ./install/$HELM_REPO --set image.tag=$GITHUB_SHA
           fi
 
