@@ -30,10 +30,21 @@ jobs:
         token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
   
     - name: Save DigitalOcean kubeconfig
-      run: doctl kubernetes cluster kubeconfig save $DOKS_CLUSTER
+      run: doctl kubernetes cluster kubeconfig show $DOKS_CLUSTER > ./kubeconfig.yml
       
     - name: Login to DOCR registry
       run: doctl registry login
+
+    - name: Ensure secrets on cluster 
+      run: doctl registry kubernetes-manifest > ./docr-secret.yml
+
+    - name: Deploy to cluster
+      uses: stefanprodan/kube-tools@v1
+      with:
+        kubectl: 1.18.2
+        command: |
+          kubectl apply -f ./docr-secret.yml
+          kubectl patch serviceaccount default -p "{\"imagePullSecrets\": [{\"name\": \"registry-$REGISTRY_NAME\"}]}"
       
     - name: Build
       run: |        
@@ -60,12 +71,11 @@ jobs:
       with:
         helmv3: 3.2.1
         command: |
-          doctl kubernetes cluster kubeconfig save $DOKS_CLUSTER
           export HELM_EXPERIMENTAL_OCI=1
           helmv3 chart export $REGISTRY_HOSTNAME/$REGISTRY_NAME/$HELM_REPO/$IMAGE:$GITHUB_SHA -d install
-          if ! helmv3 status $DEPLOYMENT_NAME > /dev/null; then
-            helm install $DEPLOYMENT_NAME ./install/$HELM_REPO --set image.tag=$GITHUB_SHA
+          if ! helmv3 --kubeconfig=./kubeconfig.yml status $DEPLOYMENT_NAME > /dev/null; then
+            helm install --kubeconfig=./kubeconfig.yml $DEPLOYMENT_NAME ./install/$HELM_REPO --set image.tag=$GITHUB_SHA 
           else
-            helm upgrade $DEPLOYMENT_NAME ./install/$HELM_REPO --set image.tag=$GITHUB_SHA
+            helm upgrade --kubeconfig=./kubeconfig.yml $DEPLOYMENT_NAME ./install/$HELM_REPO --set image.tag=$GITHUB_SHA
           fi
 
