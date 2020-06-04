@@ -43,6 +43,7 @@ jobs:
       with:
         kubectl: 1.18.2
         command: |
+          export KUBECONFIG=./kubeconfig.yml
           kubectl apply -f ./docr-secret.yml
           kubectl patch serviceaccount default -p "{\"imagePullSecrets\": [{\"name\": \"registry-$REGISTRY_NAME\"}]}"
       
@@ -71,11 +72,12 @@ jobs:
       with:
         helmv3: 3.2.1
         command: |
+          export KUBECONFIG=./kubeconfig.yml
           export HELM_EXPERIMENTAL_OCI=1
           helmv3 chart export $REGISTRY_HOSTNAME/$REGISTRY_NAME/$HELM_REPO/$IMAGE:$GITHUB_SHA -d install
-          if ! helmv3 --kubeconfig=./kubeconfig.yml status $DEPLOYMENT_NAME > /dev/null; then
-            helm install --kubeconfig=./kubeconfig.yml $DEPLOYMENT_NAME ./install/$HELM_REPO --set image.tag=$GITHUB_SHA 
+          if ! helmv3 status $DEPLOYMENT_NAME > /dev/null; then
+            helm install $DEPLOYMENT_NAME ./install/$HELM_REPO --set image.tag=$GITHUB_SHA 
           else
-            helm upgrade --kubeconfig=./kubeconfig.yml $DEPLOYMENT_NAME ./install/$HELM_REPO --set image.tag=$GITHUB_SHA
+            helm upgrade $DEPLOYMENT_NAME ./install/$HELM_REPO --set image.tag=$GITHUB_SHA
           fi
 
