@@ -60,6 +60,7 @@ jobs:
       with:
         helmv3: 3.2.1
         command: |
+          doctl kubernetes cluster kubeconfig save $DOKS_CLUSTER
           export HELM_EXPERIMENTAL_OCI=1
           helmv3 chart export $REGISTRY_HOSTNAME/$REGISTRY_NAME/$HELM_REPO/$IMAGE:$GITHUB_SHA -d install
           if ! helmv3 status $DEPLOYMENT_NAME > /dev/null; then
