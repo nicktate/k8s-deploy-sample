@@ -76,7 +76,7 @@ jobs:
           export KUBECONFIG=./kubeconfig.yml
           export HELM_EXPERIMENTAL_OCI=1
           helmv3 chart export $REGISTRY_HOSTNAME/$REGISTRY_NAME/$HELM_REPO/$IMAGE:$GITHUB_SHA -d install
-          if ! helmv3 status $DEPLOYMENT_NAME 2>&1 /dev/null; then
+          if ! helmv3 status $DEPLOYMENT_NAME; then
             helmv3 install $DEPLOYMENT_NAME ./install/$IMAGE --set image.tag=$GITHUB_SHA --imageSecretName=registry-$REGISTRY_NAME
           else
             helmv3 upgrade $DEPLOYMENT_NAME ./install/$IMAGE --set image.tag=$GITHUB_SHA --imageSecretName=registry-$REGISTRY_NAME
