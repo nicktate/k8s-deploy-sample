@@ -45,7 +45,7 @@ jobs:
         command: |
           export KUBECONFIG=./kubeconfig.yml
           kubectl apply -f ./docr-secret.yml
-          kubectl patch serviceaccount default -p "{\"imagePullSecrets\": [{\"name\": \"registry-$REGISTRY_NAME\"}]}"
+          kubectl patch serviceaccount default -p "{'imagePullSecrets': [{'name': 'registry-$REGISTRY_NAME'}]}"
       
     - name: Build
       run: |        
